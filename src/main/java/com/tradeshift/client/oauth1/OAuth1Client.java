@@ -11,7 +11,7 @@ import com.tradeshift.client.TradeshiftRestClient;
 /**
  * Base class for a RestClient that signs requests using OAuth 1
  */
-public abstract class OAuth1Client implements RestClient {
+public abstract class OAuth1Client extends RestClient {
     
     protected final TradeshiftRestClient client;
     
@@ -19,18 +19,25 @@ public abstract class OAuth1Client implements RestClient {
         this.client = client;
     }
     
+    @Override
     public WebResource resource() {
         OAuthParameters params = getOAuthParameters();
         OAuthSecrets secrets = getOAuthSecrets();
-        OAuthClientFilter filter = new OAuthClientFilter(client.getProviders(), params, secrets);
+        OAuthClientFilter filter = new OAuthClientFilter(TradeshiftRestClient.Internal.getJaxRsProviders(client), params, secrets);
 
         WebResource resource = client.resource();
         resource.addFilter(filter);
         return resource;
     }
 
-    public void post(WebResource resource) {
-        client.post(addHeaders(resource.getRequestBuilder()));
+    @Override
+    public <T> T get(Class<T> type, Builder builder) {
+        return client.get(type, addHeaders(builder));
+    }
+    
+    @Override
+    public void post(WebResource.Builder resource) {
+        client.post(addHeaders(resource));
     }
 
     protected OAuthSecrets getOAuthSecrets() {

@@ -6,16 +6,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.tradeshift.client.exception.TradeshiftClientException;
-import com.tradeshift.client.oauth1.AccountOps;
-import com.tradeshift.client.oauth1.OAuth1Client;
+import com.tradeshift.client.oauth1.OAuth1ConsumerClient;
+import com.tradeshift.client.ops.ConsumerOps;
 
 public class OAuth1CredentialsManager {
     protected final Logger log = LoggerFactory.getLogger(getClass());
     
-    private final OAuth1Client tradeshiftAPI;
+    private final OAuth1ConsumerClient tradeshiftAPI;
     private final OAuth1CredentialStorage storage;
     
-    public OAuth1CredentialsManager(OAuth1Client tradeshiftAPI, OAuth1CredentialStorage storage) {
+    public OAuth1CredentialsManager(OAuth1ConsumerClient tradeshiftAPI, OAuth1CredentialStorage storage) {
         this.storage = storage;
         this.tradeshiftAPI = tradeshiftAPI;
     }
@@ -41,7 +41,7 @@ public class OAuth1CredentialsManager {
         do {
             log.debug ("Requesting resend of token for {}", companyAccountId);
             try {
-                new AccountOps(tradeshiftAPI).resendOAuthToken(companyAccountId);
+                ConsumerOps.on(tradeshiftAPI).resendOAuthToken(companyAccountId);
             } catch (RuntimeException x) {
                 log.error ("Error requesting resend of OAuth token for {}", companyAccountId, x);
                 throw new TradeshiftClientException("Cannot reach Tradeshift", x); // Don't retry when we can't reach Tradeshift. 

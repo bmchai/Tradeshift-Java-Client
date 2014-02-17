@@ -1,15 +1,47 @@
 package com.tradeshift.client;
 
-import com.sun.jersey.api.client.WebResource;
+import javax.ws.rs.core.MediaType;
 
-public interface RestClient {
+import org.codehaus.jackson.JsonNode;
+
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.WebResource.Builder;
+
+public abstract class RestClient {
     /**
      * Gets a jersey WebResource. The user can configure it for sub-paths, and then pass it to one of the other methods of this interface.
      */
-    public WebResource resource();
+    public abstract WebResource resource();
 
     /**
-     * POST Does a http POST on the given resource.
+     * Does a http GET on the given resource.
      */
-    public void post(WebResource resource);
+    public abstract <T> T get (Class<T> type, Builder builder);
+    
+    /**
+     * Does a http GET on the given resource.
+     */
+    public <T> T get(Class<T> type, WebResource resource) {
+        return get(type, resource.getRequestBuilder());
+    }
+    
+    /**
+     * Does a http GET on the given resource, requesting the result as JSON.
+     */
+    public JsonNode getJson(WebResource resource) {
+        return get(JsonNode.class, resource.accept(MediaType.APPLICATION_JSON_TYPE));
+    }
+    
+    /**
+     * Does a http POST on the given resource.
+     */
+    public abstract void post(WebResource.Builder resource);
+    
+    /**
+     * Does a http POST on the given resource.
+     */
+    public void post(WebResource resource) {
+        post(resource.getRequestBuilder());
+    }
+    
 }

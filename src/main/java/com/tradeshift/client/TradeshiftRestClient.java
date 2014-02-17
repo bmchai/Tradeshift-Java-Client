@@ -15,15 +15,40 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.LoggingFilter;
 import com.tradeshift.client.oauth1.OAuth1ConsumerClient;
+import com.tradeshift.client.oauth1.OAuth1TokenClient;
 import com.tradeshift.client.oauth1.credentials.OAuth1CredentialStorage;
 import com.tradeshift.client.oauth1.credentials.OAuth1MemoryCredentialStorage;
 import com.tradeshift.client.oauth1.credentials.OAuth1NoCredentialStorage;
 
-public class TradeshiftRestClient {
+/**
+ * Entry point for creating Tradeshift REST client instances.
+ */
+public class TradeshiftRestClient extends RestClient {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
+    /**
+     * Creates a new TradeshiftRestClient for accessing the Tradeshift production server.
+     * @param userAgent The HTTP User-Agent to use. Must be uniquely identifying you as an API user.
+     */
     public static TradeshiftRestClient production(String userAgent) {
-        return new TradeshiftRestClient(userAgent, createClient(), "https://api.tradeshift.com/tradeshift/rest");
+        return forUrl("https://api.tradeshift.com/tradeshift/rest", userAgent);
+    }
+    
+    /**
+     * Creates a new TradeshiftRestClient for accessing the Tradeshift sandbox server.
+     * @param userAgent The HTTP User-Agent to use. Must be uniquely identifying you as an API user.
+     */
+    public static TradeshiftRestClient sandbox(String userAgent) {
+        return forUrl("https://sandbox.tradeshift.com/tradeshift/rest", userAgent);
+    }
+    
+    /**
+     * Creates a new TradeshiftRestClient for accessing the Tradeshift API.
+     * @param baseUrl The base URL to the Tradeshift API (probably ends in "/tradeshift/rest")
+     * @param userAgent The HTTP User-Agent to use. Must be uniquely identifying you as an API user.
+     */
+    public static TradeshiftRestClient forUrl(String baseUrl, String userAgent) {
+        return new TradeshiftRestClient(userAgent, createClient(), baseUrl);
     }
     
     private static Client createClient() {
@@ -65,6 +90,18 @@ public class TradeshiftRestClient {
     }
     
     /**
+     * Creates a new OAuth1 client for accessing the "OwnAccount" app, by using
+     * both consumer key and consumer secret "OwnAccount".
+     * 
+     * In order to use this call, install the "OwnAccount" app on tradeshift, and
+     * copy the token and token secret values from there.
+     * @param token The OAuth token 
+     */
+    public OAuth1TokenClient forOwnAccount(String token, String tokenSecret) {
+        return forOAuth1("OwnAccount", "OwnAccount").withToken(token, tokenSecret);
+    }
+    
+    /**
      * Returns the X-Tradeshift-RequestId to send to Tradeshift, or null to not send a request ID. The request ID
      * is used by Tradeshift to better implement idempotency for certain requests, in case of re-tries.
      */
@@ -75,6 +112,7 @@ public class TradeshiftRestClient {
     /**
      * Gets a jersey WebResource, relative to the base URL of this client.
      */
+    @Override
     public WebResource resource() {
         WebResource resource = client.resource(baseURL);
 
@@ -88,8 +126,17 @@ public class TradeshiftRestClient {
     /**
      * Makes a request for the given request builder, using POST.
      */
+    @Override
     public void post(Builder builder) {
         addHeaders(builder).post();
+    }
+    
+    /**
+     * Makes a request for the given request builder, using GET.
+     */
+    @Override
+    public <T> T get (Class<T> type, Builder builder) {
+        return addHeaders(builder).get(type);
     }
     
     /**
@@ -107,8 +154,12 @@ public class TradeshiftRestClient {
     /** 
      * Returns the Providers used by the wrapped Jersey client.
      */
-    public Providers getProviders() {
+    private Providers getProviders() {
         return client.getProviders();
     }
 
+    /** Internal Tradeshift-Client library API, do not use. */
+    public static class Internal {
+        public static Providers getJaxRsProviders(TradeshiftRestClient client) { return client.getProviders(); }
+    }
 }
