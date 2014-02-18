@@ -31,13 +31,33 @@ public abstract class OAuth1Client extends RestClient {
     }
 
     @Override
-    public <T> T get(Class<T> type, Builder builder) {
+    public <T> T get(Class<T> type, WebResource.Builder builder) {
         return client.get(type, addHeaders(builder));
     }
     
     @Override
     public void post(WebResource.Builder resource) {
         client.post(addHeaders(resource));
+    }
+    
+    @Override
+    public void put(WebResource.Builder resource) {
+        client.put(addHeaders(resource));
+    }
+    
+    @Override
+    public void put(Builder resource, Object requestEntity) {
+        client.put(addHeaders(resource), requestEntity);
+    }
+    
+    @Override
+    public void delete(Builder resource) {
+        client.delete(addHeaders(resource));
+    }
+    
+    @Override
+    public void post(Builder resource, Object requestEntity) {
+        client.post(addHeaders(resource), requestEntity);
     }
 
     protected OAuthSecrets getOAuthSecrets() {
@@ -48,7 +68,7 @@ public abstract class OAuth1Client extends RestClient {
         return new OAuthParameters().signatureMethod("HMAC-SHA1").version();
     }
 
-    protected Builder addHeaders(Builder builder) {
+    protected WebResource.Builder addHeaders(WebResource.Builder builder) {
         return builder;
     }
 }

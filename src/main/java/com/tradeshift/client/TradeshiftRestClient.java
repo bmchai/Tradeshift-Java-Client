@@ -48,7 +48,7 @@ public class TradeshiftRestClient extends RestClient {
      * @param userAgent The HTTP User-Agent to use. Must be uniquely identifying you as an API user.
      */
     public static TradeshiftRestClient forUrl(String baseUrl, String userAgent) {
-        return new TradeshiftRestClient(userAgent, createClient(), baseUrl);
+        return new TradeshiftRestClient(baseUrl, userAgent);
     }
     
     private static Client createClient() {
@@ -64,12 +64,16 @@ public class TradeshiftRestClient extends RestClient {
     
     private final String userAgent;
     private final Client client;
-    private final String baseURL;
+    private final String baseUrl;
     
-    private TradeshiftRestClient(String userAgent, Client client, String baseURL) {
+    private TradeshiftRestClient(String baseUrl, String userAgent, Client client) {
         this.userAgent = userAgent;
         this.client = client;
-        this.baseURL = baseURL;
+        this.baseUrl = baseUrl;
+    }
+    
+    protected TradeshiftRestClient(String baseUrl, String userAgent) {
+        this(baseUrl, userAgent, createClient());
     }
 
     /**
@@ -114,7 +118,7 @@ public class TradeshiftRestClient extends RestClient {
      */
     @Override
     public WebResource resource() {
-        WebResource resource = client.resource(baseURL);
+        WebResource resource = client.resource(baseUrl);
 
         if (log.isTraceEnabled()) {
             resource.addFilter(new LoggingFilter());
@@ -123,20 +127,34 @@ public class TradeshiftRestClient extends RestClient {
         return resource;
     }
 
-    /**
-     * Makes a request for the given request builder, using POST.
-     */
     @Override
     public void post(Builder builder) {
         addHeaders(builder).post();
     }
     
-    /**
-     * Makes a request for the given request builder, using GET.
-     */
     @Override
     public <T> T get (Class<T> type, Builder builder) {
         return addHeaders(builder).get(type);
+    }
+    
+    @Override
+    public void put(Builder resource) {
+        addHeaders(resource).put();
+    }
+    
+    @Override
+    public void put(Builder resource, Object requestEntity) {
+        addHeaders(resource).put(requestEntity);
+    }
+    
+    @Override
+    public void delete(Builder resource) {
+        addHeaders(resource).delete();
+    }
+    
+    @Override
+    public void post(Builder resource, Object requestEntity) {
+        addHeaders(resource).post(requestEntity);
     }
     
     /**
