@@ -2,6 +2,7 @@ package com.tradeshift.client.ops;
 
 import org.codehaus.jackson.JsonNode;
 
+import static com.tradeshift.client.jersey.JerseyUtil.getJson;
 import com.tradeshift.client.oauth1.OAuth1TokenClient;
 
 /**
@@ -22,6 +23,6 @@ public class AccountOps {
      * Gets information about the currently accessed account (external/account/info) 
      */
     public JsonNode getInfo() {
-        return client.getJson(client.resource().path("external/account/info"));
+        return getJson(client.resource().path("external/account/info"));
     }
 }

@@ -24,12 +24,11 @@ public class ConsumerOps {
      * be sent to the URL configured in the developer interface for the current consumer key.
      */
     public void resendOAuthToken(UUID companyAccountId) {
-        client.post (
-            client.resource()
-               .path("external/consumer/accounts")
-               .path(companyAccountId.toString())
-               .path("resendtoken")
-        );
+        client.resource()
+           .path("external/consumer/accounts")
+           .path(companyAccountId.toString())
+           .path("resendtoken")
+           .post();
     }
 
 }

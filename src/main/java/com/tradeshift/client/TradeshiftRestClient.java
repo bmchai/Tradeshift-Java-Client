@@ -2,18 +2,11 @@ package com.tradeshift.client;
 
 import java.util.UUID;
 
-import javax.ws.rs.ext.Providers;
-
-import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientHandlerException;
+import com.sun.jersey.api.client.ClientRequest;
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.WebResource.Builder;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.LoggingFilter;
+import com.sun.jersey.api.client.filter.ClientFilter;
 import com.tradeshift.client.oauth1.OAuth1ConsumerClient;
 import com.tradeshift.client.oauth1.OAuth1TokenClient;
 import com.tradeshift.client.oauth1.credentials.OAuth1CredentialStorage;
@@ -23,8 +16,7 @@ import com.tradeshift.client.oauth1.credentials.OAuth1NoCredentialStorage;
 /**
  * Entry point for creating Tradeshift REST client instances.
  */
-public class TradeshiftRestClient extends RestClient {
-    private final Logger log = LoggerFactory.getLogger(getClass());
+public class TradeshiftRestClient {
     
     /**
      * Creates a new TradeshiftRestClient for accessing the Tradeshift production server.
@@ -51,29 +43,24 @@ public class TradeshiftRestClient extends RestClient {
         return new TradeshiftRestClient(baseUrl, userAgent);
     }
     
-    private static Client createClient() {
-        ClientConfig cc = new DefaultClientConfig();
-        cc.getClasses().add(JacksonJsonProvider.class);
-        Client client = Client.create(cc);
-        client.setFollowRedirects(false);
-        client.setChunkedEncodingSize(64 * 1024);
-        client.setConnectTimeout(10000);
-        client.setReadTimeout(60000);
-        return client;
-    }
+    private final FilteredClient client;
     
-    private final String userAgent;
-    private final Client client;
-    private final String baseUrl;
-    
-    private TradeshiftRestClient(String baseUrl, String userAgent, Client client) {
-        this.userAgent = userAgent;
-        this.client = client;
-        this.baseUrl = baseUrl;
+    private TradeshiftRestClient(FilteredClient client, final String userAgent) {
+        this.client = client.filtered(new ClientFilter() {
+            @Override
+            public ClientResponse handle(ClientRequest cr) throws ClientHandlerException {
+                cr.getHeaders().putSingle("User-Agent", userAgent);
+                UUID requestId = getRequestId();
+                if (requestId != null) {
+                    cr.getHeaders().putSingle("X-Tradeshift-RequestId", requestId.toString());
+                }
+                return getNext().handle(cr);
+            }
+        });
     }
     
     protected TradeshiftRestClient(String baseUrl, String userAgent) {
-        this(baseUrl, userAgent, createClient());
+        this(FilteredClient.create(baseUrl), userAgent);
     }
 
     /**
@@ -90,7 +77,7 @@ public class TradeshiftRestClient extends RestClient {
      * account retrieval timeout of 10 seconds.
      */
     public OAuth1ConsumerClient forOAuth1(String consumerKey, String consumerSecret, OAuth1CredentialStorage storage) {
-        return OAuth1ConsumerClient.of(this, consumerKey, consumerSecret, 10000, storage);
+        return OAuth1ConsumerClient.of(client, consumerKey, consumerSecret, 10000, storage);
     }
     
     /**
@@ -116,68 +103,7 @@ public class TradeshiftRestClient extends RestClient {
     /**
      * Gets a jersey WebResource, relative to the base URL of this client.
      */
-    @Override
     public WebResource resource() {
-        WebResource resource = client.resource(baseUrl);
-
-        if (log.isTraceEnabled()) {
-            resource.addFilter(new LoggingFilter());
-        }
-
-        return resource;
-    }
-
-    @Override
-    public void post(Builder builder) {
-        addHeaders(builder).post();
-    }
-    
-    @Override
-    public <T> T get (Class<T> type, Builder builder) {
-        return addHeaders(builder).get(type);
-    }
-    
-    @Override
-    public void put(Builder resource) {
-        addHeaders(resource).put();
-    }
-    
-    @Override
-    public void put(Builder resource, Object requestEntity) {
-        addHeaders(resource).put(requestEntity);
-    }
-    
-    @Override
-    public void delete(Builder resource) {
-        addHeaders(resource).delete();
-    }
-    
-    @Override
-    public void post(Builder resource, Object requestEntity) {
-        addHeaders(resource).post(requestEntity);
-    }
-    
-    /**
-     * Adds Tradeshift headers to the given request.
-     */
-    protected Builder addHeaders(Builder b) {
-        b = b.header("User-Agent", userAgent);
-        UUID requestId = getRequestId();
-        if (requestId != null) {
-            b = b.header("X-Tradeshift-RequestId", requestId.toString());
-        }
-        return b;
-    }
-    
-    /** 
-     * Returns the Providers used by the wrapped Jersey client.
-     */
-    private Providers getProviders() {
-        return client.getProviders();
-    }
-
-    /** Internal Tradeshift-Client library API, do not use. */
-    public static class Internal {
-        public static Providers getJaxRsProviders(TradeshiftRestClient client) { return client.getProviders(); }
+        return client.resource();
     }
 }

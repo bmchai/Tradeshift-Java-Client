@@ -4,7 +4,7 @@ import java.util.UUID;
 
 import com.sun.jersey.oauth.signature.OAuthParameters;
 import com.sun.jersey.oauth.signature.OAuthSecrets;
-import com.tradeshift.client.TradeshiftRestClient;
+import com.tradeshift.client.FilteredClient;
 import com.tradeshift.client.exception.TradeshiftClientException;
 import com.tradeshift.client.oauth1.credentials.OAuth1CredentialStorage;
 import com.tradeshift.client.oauth1.credentials.OAuth1CredentialsManager;
@@ -15,7 +15,7 @@ import com.tradeshift.client.oauth1.credentials.TokenAndSecret;
  */
 public class OAuth1ConsumerClient extends OAuth1Client {
     
-    public static OAuth1ConsumerClient of(TradeshiftRestClient client, String consumerKey, String consumerSecret, 
+    public static OAuth1ConsumerClient of(FilteredClient client, String consumerKey, String consumerSecret, 
                                           long accountRetrievalTimeout, OAuth1CredentialStorage storage) {
         return new OAuth1ConsumerClient(client, consumerKey, consumerSecret, null, storage, accountRetrievalTimeout);
     }
@@ -25,7 +25,7 @@ public class OAuth1ConsumerClient extends OAuth1Client {
     protected final OAuth1CredentialsManager credentialsManager;
     private final long accountRetrievalTimeout;
     
-    protected OAuth1ConsumerClient(TradeshiftRestClient client, String consumerKey, String consumerSecret, 
+    protected OAuth1ConsumerClient(FilteredClient client, String consumerKey, String consumerSecret, 
                                    OAuth1CredentialsManager credentialsManager, OAuth1CredentialStorage storage, long accountRetrievalTimeout) {
         super(client);
         this.consumerKey = consumerKey;

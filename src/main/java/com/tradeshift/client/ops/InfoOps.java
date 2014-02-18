@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.codehaus.jackson.JsonNode;
 
 import com.tradeshift.client.TradeshiftRestClient;
+import static com.tradeshift.client.jersey.JerseyUtil.getJson;
 
 /**
  * API Operations about public information, that can be retrieved without authenticating.
@@ -25,7 +26,7 @@ public class InfoOps {
      * identifies a Tradeshift environment, e.g. production, sandbox, or others.
      */
     public UUID getClusterId() {
-        JsonNode status = client.getJson(
+        JsonNode status = getJson(
             client.resource()
                   .path("external/info/status"));
         return UUID.fromString(status.get("ClusterId").asText());

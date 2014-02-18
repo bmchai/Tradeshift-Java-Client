@@ -2,10 +2,11 @@ package com.tradeshift.client.oauth1;
 
 import java.util.UUID;
 
-import com.sun.jersey.api.client.WebResource.Builder;
+import javax.ws.rs.core.MultivaluedMap;
+
 import com.sun.jersey.oauth.signature.OAuthParameters;
 import com.sun.jersey.oauth.signature.OAuthSecrets;
-import com.tradeshift.client.TradeshiftRestClient;
+import com.tradeshift.client.FilteredClient;
 
 /**
  * OAuth 1 Rest client that signs requests using consumer key, consumer secret, token, and token secret.
@@ -18,7 +19,7 @@ public class OAuth1TokenClient extends OAuth1Client {
     private final String tokenSecret;
     private final UUID tenantId;
     
-    OAuth1TokenClient(TradeshiftRestClient client, String consumerKey, String consumerSecret, String token, String tokenSecret, UUID tenantId) {
+    OAuth1TokenClient(FilteredClient client, String consumerKey, String consumerSecret, String token, String tokenSecret, UUID tenantId) {
         super(client);
         this.consumerKey = consumerKey;
         this.consumerSecret = consumerSecret;
@@ -42,12 +43,9 @@ public class OAuth1TokenClient extends OAuth1Client {
     }
     
     @Override
-    protected Builder addHeaders(Builder builder) {
-        if (tenantId == null) {
-            return builder;
-        } else {
-            return builder.header("X-Tradeshift-TenantId", tenantId.toString());            
+    protected void applyHeaders(MultivaluedMap<String, Object> headers) {
+        if (tenantId != null) {
+            headers.putSingle("X-Tradeshift-TenantId", tenantId.toString());
         }
     }
-
 }
