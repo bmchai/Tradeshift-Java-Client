@@ -48,8 +48,20 @@ as follows:
 as an example).
 -  You create consumer key on Tradeshift.
 -  You write your server-side Java component using this library, configuring it with your consumer key.
+   You will manage a singleton instance of [`OAuth1TokenClient`](https://github.com/Tradeshift/Tradeshift-Java-Client/blob/master/src/main/java/com/tradeshift/client/oauth1/OAuth1ConsumerClient.java), which you can create using e.g. 
+ 
+   
+     `client = TradeshiftRestClient.production("/// Put-Your-User-Agent-Here ///")`
+     `                    .forOauth1("consumerKey","secret")`
+ 
+    You can put that in your Spring context by using Spring JavaConfig.
+   
 -  You deploy your Java component on your own URL.
--  You have your Java component expose a callback resource by using `OAuth1CallbackResource`, which Tradeshift can call when people activate/deactivate your app. You can configure this URL on Tradeshift.
+-  You have your Java component expose a callback resource by creating a 
+   subclass of [`OAuth1CallbackResource`](https://github.com/Tradeshift/Tradeshift-Java-Client/blob/master/src/main/java/com/tradeshift/client/oauth1/OAuth1CallbackResource.java), and exposing that as a JAX-RS resource.
+   Tradeshift calls that resource when people activate/deactivate your app. 
+   You can configure this URL on Tradeshift.
+   
 -  You send your App to Tradeshift to have it deployed. 
 
 The callback resource that the library implements, is a JAX-RS annotated

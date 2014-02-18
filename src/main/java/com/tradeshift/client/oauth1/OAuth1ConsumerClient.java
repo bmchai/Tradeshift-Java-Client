@@ -78,5 +78,4 @@ public class OAuth1ConsumerClient extends OAuth1Client {
     protected OAuthParameters getOAuthParameters() {
         return super.getOAuthParameters().consumerKey(consumerKey);
     }
-
 }
