@@ -23,7 +23,7 @@ public class TradeshiftRestClient {
      * @param userAgent The HTTP User-Agent to use. Must be uniquely identifying you as an API user.
      */
     public static TradeshiftRestClient production(String userAgent) {
-        return forUrl("https://api.tradeshift.com/tradeshift/rest", userAgent);
+        return of(JerseyClient.production(), userAgent);
     }
     
     /**
@@ -31,21 +31,21 @@ public class TradeshiftRestClient {
      * @param userAgent The HTTP User-Agent to use. Must be uniquely identifying you as an API user.
      */
     public static TradeshiftRestClient sandbox(String userAgent) {
-        return forUrl("https://sandbox.tradeshift.com/tradeshift/rest", userAgent);
+        return of(JerseyClient.production(), userAgent);
     }
     
     /**
      * Creates a new TradeshiftRestClient for accessing the Tradeshift API.
-     * @param baseUrl The base URL to the Tradeshift API (probably ends in "/tradeshift/rest")
+     * @param client The JerseyClient instance used to make requests
      * @param userAgent The HTTP User-Agent to use. Must be uniquely identifying you as an API user.
      */
-    public static TradeshiftRestClient forUrl(String baseUrl, String userAgent) {
-        return new TradeshiftRestClient(baseUrl, userAgent);
+    public static TradeshiftRestClient of(JerseyClient client, String userAgent) {
+        return new TradeshiftRestClient(client, userAgent);
     }
     
-    private final FilteredClient client;
+    protected final JerseyClient client;
     
-    private TradeshiftRestClient(FilteredClient client, final String userAgent) {
+    protected TradeshiftRestClient(JerseyClient client, final String userAgent) {
         this.client = client.filtered(new ClientFilter() {
             @Override
             public ClientResponse handle(ClientRequest cr) throws ClientHandlerException {
@@ -59,10 +59,6 @@ public class TradeshiftRestClient {
         });
     }
     
-    protected TradeshiftRestClient(String baseUrl, String userAgent) {
-        this(FilteredClient.create(baseUrl), userAgent);
-    }
-
     /**
      * Creates a new OAuth1 client, with an in-memory credential storage for 1000 users, and an
      * account retrieval timeout of 10 seconds.
@@ -95,6 +91,8 @@ public class TradeshiftRestClient {
     /**
      * Returns the X-Tradeshift-RequestId to send to Tradeshift, or null to not send a request ID. The request ID
      * is used by Tradeshift to better implement idempotency for certain requests, in case of re-tries.
+     * 
+     * You can implement this in sub-classes to return e.g. a thread-local value that covers your request context.
      */
     protected UUID getRequestId() {
         return null;

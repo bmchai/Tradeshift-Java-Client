@@ -10,16 +10,16 @@ import com.sun.jersey.api.client.filter.ClientFilter;
 import com.sun.jersey.oauth.client.OAuthClientFilter;
 import com.sun.jersey.oauth.signature.OAuthParameters;
 import com.sun.jersey.oauth.signature.OAuthSecrets;
-import com.tradeshift.client.FilteredClient;
+import com.tradeshift.client.JerseyClient;
 
 /**
  * Base class for a RestClient that signs requests using OAuth 1
  */
 public abstract class OAuth1Client {
     
-    protected final FilteredClient client;
+    protected final JerseyClient client;
     
-    protected OAuth1Client(FilteredClient client) {
+    protected OAuth1Client(JerseyClient client) {
         this.client = client.filtered(new ClientFilter() {
             @Override
             public ClientResponse handle(ClientRequest cr) throws ClientHandlerException {

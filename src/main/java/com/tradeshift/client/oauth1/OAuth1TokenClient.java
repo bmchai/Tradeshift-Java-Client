@@ -6,7 +6,7 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import com.sun.jersey.oauth.signature.OAuthParameters;
 import com.sun.jersey.oauth.signature.OAuthSecrets;
-import com.tradeshift.client.FilteredClient;
+import com.tradeshift.client.JerseyClient;
 
 /**
  * OAuth 1 Rest client that signs requests using consumer key, consumer secret, token, and token secret.
@@ -19,7 +19,7 @@ public class OAuth1TokenClient extends OAuth1Client {
     private final String tokenSecret;
     private final UUID tenantId;
     
-    OAuth1TokenClient(FilteredClient client, String consumerKey, String consumerSecret, String token, String tokenSecret, UUID tenantId) {
+    OAuth1TokenClient(JerseyClient client, String consumerKey, String consumerSecret, String token, String tokenSecret, UUID tenantId) {
         super(client);
         this.consumerKey = consumerKey;
         this.consumerSecret = consumerSecret;
