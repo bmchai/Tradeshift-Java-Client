@@ -85,7 +85,9 @@ public class TradeshiftRestClient {
      * @param token The OAuth token 
      */
     public OAuth1TokenClient forOwnAccount(String token, String tokenSecret) {
-        return forOAuth1("OwnAccount", "OwnAccount").withToken(token, tokenSecret);
+        final String ownAccountApp_consumerKey = "OwnAccount";
+        final String ownAccountApp_consumerSecret = "OwnAccount";
+        return forOAuth1(ownAccountApp_consumerKey, ownAccountApp_consumerSecret).withToken(token, tokenSecret);
     }
     
     /**
