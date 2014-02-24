@@ -2,11 +2,10 @@ package com.tradeshift.client;
 
 import java.util.UUID;
 
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientRequest;
-import com.sun.jersey.api.client.ClientResponse;
+import javax.ws.rs.core.MultivaluedMap;
+
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.filter.ClientFilter;
+import com.tradeshift.client.JerseyClient.HeaderProcessor;
 import com.tradeshift.client.oauth1.OAuth1ConsumerClient;
 import com.tradeshift.client.oauth1.OAuth1TokenClient;
 import com.tradeshift.client.oauth1.credentials.OAuth1CredentialStorage;
@@ -46,15 +45,14 @@ public class TradeshiftRestClient {
     protected final JerseyClient client;
     
     protected TradeshiftRestClient(JerseyClient client, final String userAgent) {
-        this.client = client.filtered(new ClientFilter() {
+        this.client = client.filtered(new HeaderProcessor() {
             @Override
-            public ClientResponse handle(ClientRequest cr) throws ClientHandlerException {
-                cr.getHeaders().putSingle("User-Agent", userAgent);
+            public void processHeaders(MultivaluedMap<String, Object> headers) {
+                headers.putSingle("User-Agent", userAgent);
                 UUID requestId = getRequestId();
                 if (requestId != null) {
-                    cr.getHeaders().putSingle("X-Tradeshift-RequestId", requestId.toString());
-                }
-                return getNext().handle(cr);
+                    headers.putSingle("X-Tradeshift-RequestId", requestId.toString());
+                }                
             }
         });
     }

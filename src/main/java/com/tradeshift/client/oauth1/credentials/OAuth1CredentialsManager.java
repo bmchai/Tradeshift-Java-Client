@@ -35,8 +35,9 @@ public class OAuth1CredentialsManager {
      * @throws TradeshiftClientException if no credentials are received within the configured timeout.
      */
     public TokenAndSecret retrieve (UUID companyAccountId, long timeout) {
-        long start = System.currentTimeMillis();
+        long deadline = System.currentTimeMillis() + timeout;
         TokenAndSecret credentials = storage.get(companyAccountId);
+        log.debug("Storage currently has {} for {}", credentials, companyAccountId);
         if (credentials != null) return credentials;
         do {
             log.debug ("Requesting resend of token for {}", companyAccountId);
@@ -47,17 +48,18 @@ public class OAuth1CredentialsManager {
                 throw new TradeshiftClientException("Cannot reach Tradeshift", x); // Don't retry when we can't reach Tradeshift. 
             }
             synchronized(this) {
-                long timeleft = Math.max (1, System.currentTimeMillis() - start);
-                try {
+                long timeleft = deadline - System.currentTimeMillis();
+                if (timeleft > 0) try {
                     wait(timeleft);
                 } catch (InterruptedException e) {
                     log.warn ("Interrupted while waiting on OAuth callback for company account {}", companyAccountId, e);
                     throw new TradeshiftClientException("Interrupted while waiting for callback", e);
                 }
             }
+            log.debug("Waking up");
             credentials = storage.get(companyAccountId);
             if (credentials != null) return credentials;
-        } while (System.currentTimeMillis() < start + timeout);
+        } while (System.currentTimeMillis() < deadline);
         throw new TradeshiftClientException("Timed out waiting for credentials on company account " + companyAccountId + 
                 " after " + timeout + "ms");
     }

@@ -3,6 +3,7 @@ package com.tradeshift.client;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Providers;
 
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
@@ -10,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientRequest;
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
@@ -45,7 +48,7 @@ public class JerseyClient {
     private final int connectTimeout;
     private final int readTimeout;
     
-    private JerseyClient(Client client, String baseUrl, List<ClientFilter> filters, int connectTimeout, int readTimeout) {
+    protected JerseyClient(Client client, String baseUrl, List<ClientFilter> filters, int connectTimeout, int readTimeout) {
         this.baseUrl = baseUrl;
         this.filters = filters;
         this.connectTimeout = connectTimeout;
@@ -54,26 +57,29 @@ public class JerseyClient {
             this.client = client;
         } else {
             this.client = createClient();
+            initializeClient();
         }
     }
     
-    private Client createClient() {
-        ClientConfig cc = new DefaultClientConfig();
-        cc.getClasses().add(JacksonJsonProvider.class);
-        Client client = Client.create(cc);
+    protected void initializeClient() {
         client.setFollowRedirects(false);
         client.setChunkedEncodingSize(64 * 1024);
         client.setConnectTimeout(connectTimeout);
-        client.setReadTimeout(readTimeout);
-        return client;
+        client.setReadTimeout(readTimeout);        
+    }
+    
+    protected Client createClient() {
+        ClientConfig cc = new DefaultClientConfig();
+        cc.getClasses().add(JacksonJsonProvider.class);
+        return Client.create(cc);
     }
 
     /**
-     * Returns a new JerseyClient that will apply the given filter at the end of the chain.
+     * Returns a new JerseyClient that will apply the given header processor at the end of the chain.
      */
-    public JerseyClient filtered(ClientFilter filter) {
+    public JerseyClient filtered(final HeaderProcessor headerProcessor) {
         ArrayList<ClientFilter> f = new ArrayList<>(filters);
-        f.add(filter);
+        f.add(new HeaderProcessorClientFilter(headerProcessor));
         return new JerseyClient(client, baseUrl, f, connectTimeout, readTimeout);
     }
     
@@ -113,5 +119,21 @@ public class JerseyClient {
         return client.getProviders();
     }
 
+    public interface HeaderProcessor {
+        public void processHeaders(MultivaluedMap<String, Object> headers);
+    }
     
+    class HeaderProcessorClientFilter extends ClientFilter {
+        public final HeaderProcessor processor;
+
+        public HeaderProcessorClientFilter(HeaderProcessor processor) {
+            this.processor = processor;
+        }
+
+        @Override
+        public ClientResponse handle(ClientRequest cr) {
+            processor.processHeaders(cr.getHeaders());
+            return getNext().handle(cr);
+        }
+    }
 }
