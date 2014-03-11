@@ -2,9 +2,57 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.tradeshift.developer</groupId>
   <artifactId>tradeshift-client-java</artifactId>
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>  
+  
   <packaging>jar</packaging>
   <name>Tradeshift API client library</name>
+  <description>A Java Library for easy access to the Tradeshift API, including OAuth key management.</description>
+  <url>https://github.com/Tradeshift/Tradeshift-Java-Client</url>
   <version>1.0.0-SNAPSHOT</version>
+  
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>http://opensource.org/licenses/MIT</url>
+      <comments>
+The MIT License (MIT)
+
+Copyright (c) 2014 Tradeshift
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+      </comments>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:git:git@github.com:Tradeshift/Tradeshift-Java-Client.git</connection>
+    <developerConnection>scm:git:git@github.com:Tradeshift/Tradeshift-Java-Client.git</developerConnection>
+    <url>git@github.com:Tradeshift/Tradeshift-Java-Client.git</url>
+  </scm>
+
+  <developers>
+    <developer><email>support@tradeshift.com</email></developer>
+  </developers>
 
   <build>
     <plugins>
@@ -16,6 +64,19 @@
           <source>1.7</source>
           <target>1.7</target>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
