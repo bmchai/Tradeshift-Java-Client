@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import javax.ws.rs.core.MultivaluedMap;
 
+import com.google.common.base.Supplier;
 import com.sun.jersey.api.client.WebResource;
 import com.tradeshift.client.JerseyClient.HeaderProcessor;
 import com.tradeshift.client.oauth1.OAuth1ConsumerClient;
@@ -39,20 +40,28 @@ public class TradeshiftRestClient {
      * @param userAgent The HTTP User-Agent to use. Must be uniquely identifying you as an API user.
      */
     public static TradeshiftRestClient of(JerseyClient client, String userAgent) {
-        return new TradeshiftRestClient(client, userAgent);
+        return new TradeshiftRestClient(client, userAgent, null);
     }
     
-    protected final JerseyClient client;
+    protected final JerseyClient baseClient, client;
+    protected final String userAgent;
+    protected final Supplier<UUID> requestId;
     
-    protected TradeshiftRestClient(JerseyClient client, final String userAgent) {
-        this.client = client.filtered(new HeaderProcessor() {
+    protected TradeshiftRestClient(JerseyClient baseClient, final String userAgent, final Supplier<UUID> requestId) {
+        this.baseClient = baseClient;
+        this.requestId = requestId;
+        this.userAgent = userAgent;
+        
+        this.client = baseClient.filtered(new HeaderProcessor() {
             @Override
             public void processHeaders(MultivaluedMap<String, Object> headers) {
                 headers.putSingle("User-Agent", userAgent);
-                UUID requestId = getRequestId();
-                if (requestId != null) {
-                    headers.putSingle("X-Tradeshift-RequestId", requestId.toString());
-                }                
+                if (requestId != null) {                    
+                    UUID id = requestId.get();
+                    if (id != null) {
+                        headers.putSingle("X-Tradeshift-RequestId", id.toString());
+                    }                
+                }
             }
         });
     }
@@ -89,13 +98,13 @@ public class TradeshiftRestClient {
     }
     
     /**
-     * Returns the X-Tradeshift-RequestId to send to Tradeshift, or null to not send a request ID. The request ID
-     * is used by Tradeshift to better implement idempotency for certain requests, in case of re-tries.
+     * Returns the new TradeshiftRestClient that used the given Supplier to provide a X-Tradeshift-RequestId 
+     * header to send on requests to Tradeshift, or null to not send a request ID.
      * 
-     * You can implement this in sub-classes to return e.g. a thread-local value that covers your request context.
+     * The request ID is used by Tradeshift to better implement idempotency for certain requests, in case of re-tries.
      */
-    protected UUID getRequestId() {
-        return null;
+    public TradeshiftRestClient withRequestId(Supplier<UUID> requestId) {
+        return new TradeshiftRestClient(baseClient, userAgent, requestId);
     }
     
     /**
