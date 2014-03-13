@@ -54,6 +54,19 @@ THE SOFTWARE.
     <developer><email>support@tradeshift.com</email></developer>
   </developers>
 
+  <profiles>
+    <profile>
+      <id>tradeshift</id>
+      <distributionManagement>
+        <snapshotRepository>
+          <id>snapshots</id>
+          <name>OpenPorta Internal Snapshots</name>
+          <url>http://nexus.tradeshift.com:9999/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+      </distributionManagement>
+    </profile>
+  </profiles>
+
   <build>
     <plugins>
       <plugin>
