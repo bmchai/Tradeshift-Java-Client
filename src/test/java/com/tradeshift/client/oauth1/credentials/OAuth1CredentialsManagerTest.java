@@ -1,7 +1,9 @@
 package com.tradeshift.client.oauth1.credentials;
 
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -17,11 +19,14 @@ import org.junit.Test;
 import com.sun.jersey.api.client.WebResource;
 import com.tradeshift.client.exception.TradeshiftClientException;
 import com.tradeshift.client.oauth1.OAuth1ConsumerClient;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 public class OAuth1CredentialsManagerTest {
     private ExecutorService background;
     private UUID companyAccountId;
     private OAuth1CredentialsManager m;
+    private WebResource resource;
 
     @Before
     public void setup() {
@@ -44,11 +49,32 @@ public class OAuth1CredentialsManagerTest {
         };
         background = Executors.newFixedThreadPool(1);
         OAuth1ConsumerClient tradeshiftAPI = mock(OAuth1ConsumerClient.class);
-        WebResource resource = mock(WebResource.class);
+        resource = mock(WebResource.class);
         when(resource.path(any(String.class))).thenReturn(resource);
         when(tradeshiftAPI.resource()).thenReturn(resource);
         m = new OAuth1CredentialsManager(tradeshiftAPI, storage);
         companyAccountId = UUID.randomUUID();        
+    }
+
+    @Test
+    public void retrieve_should_not_block_on_waiting_when_resending_token_is_synchronous_operation() {
+        final TokenAndSecret tokenAndSecret = new TokenAndSecret("token", "secret");
+
+        // simulate synchronous resending token operation
+        doAnswer(new Answer<Void>() {
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+                m.store(companyAccountId, tokenAndSecret);
+                return null;
+            }
+        }).when(resource).post();
+
+        long start = System.currentTimeMillis();
+        TokenAndSecret retrieved = m.retrieve(companyAccountId, 1000);
+        long end = System.currentTimeMillis();
+
+        assertTrue(end - start < 1000);
+        assertSame(tokenAndSecret, retrieved);
     }
     
     @Test
