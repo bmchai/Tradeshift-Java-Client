@@ -48,6 +48,9 @@ public class OAuth1CredentialsManager {
                 throw new TradeshiftClientException("Cannot reach Tradeshift", x); // Don't retry when we can't reach Tradeshift. 
             }
             synchronized(this) {
+                credentials = storage.get(companyAccountId);
+                if (credentials != null) return credentials;
+
                 long timeleft = deadline - System.currentTimeMillis();
                 if (timeleft > 0) try {
                     wait(timeleft);
