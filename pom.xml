@@ -12,7 +12,7 @@
   <name>Tradeshift API client library</name>
   <description>A Java Library for easy access to the Tradeshift API, including OAuth key management.</description>
   <url>https://github.com/Tradeshift/Tradeshift-Java-Client</url>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
   
   <licenses>
     <license>

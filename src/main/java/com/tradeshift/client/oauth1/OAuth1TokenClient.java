@@ -18,6 +18,7 @@ public class OAuth1TokenClient extends OAuth1Client {
     private final String token;
     private final String tokenSecret;
     private final UUID tenantId;
+    private UUID userId;
     
     OAuth1TokenClient(JerseyClient client, String consumerKey, String consumerSecret, String token, String tokenSecret, UUID tenantId) {
         super(client);
@@ -25,11 +26,20 @@ public class OAuth1TokenClient extends OAuth1Client {
         this.consumerSecret = consumerSecret;
         this.token = token;
         this.tokenSecret = tokenSecret;
-        this.tenantId = tenantId; 
+        this.tenantId = tenantId;
+    }
+
+    OAuth1TokenClient(JerseyClient client, String consumerKey, String consumerSecret, String token, String tokenSecret, UUID tenantId, UUID userId) {
+        this(client, consumerKey, consumerSecret, token, tokenSecret, tenantId);
+        this.userId = userId;
     }
     
     public OAuth1TokenClient withTenantId(UUID tenantId) {
         return new OAuth1TokenClient(client, consumerKey, consumerSecret, token, tokenSecret, tenantId);
+    }
+
+    public OAuth1TokenClient withUserId(UUID userId) {
+        return new OAuth1TokenClient(client, consumerKey, consumerSecret, token, tokenSecret, tenantId, userId);
     }
     
     @Override
@@ -46,6 +56,9 @@ public class OAuth1TokenClient extends OAuth1Client {
     protected void applyHeaders(MultivaluedMap<String, Object> headers) {
         if (tenantId != null) {
             headers.putSingle("X-Tradeshift-TenantId", tenantId.toString());
+        }
+        if (userId != null) {
+            headers.putSingle("X-Tradeshift-ActorId", userId.toString());
         }
     }
 }
